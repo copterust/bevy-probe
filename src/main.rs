@@ -1,10 +1,13 @@
 use bevy::prelude::*;
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 
+mod point_material;
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(PanOrbitCameraPlugin)
+        .add_plugins(MaterialPlugin::<point_material::PointMaterial>::default())
         .add_systems(Startup, setup)
         .add_systems(Update, draw_axes)
         .run();
@@ -14,6 +17,7 @@ fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    points_materials: ResMut<Assets<point_material::PointMaterial>>,
 ) {
     // Camera
     commands.spawn((
@@ -28,9 +32,14 @@ fn setup(
     // Unit sphere
     commands.spawn((
         Mesh3d(meshes.add(Sphere::new(1.0))),
-        MeshMaterial3d(materials.add(Color::srgba(0.2, 0.2, 0.2, 0.05))),
-        Transform::default(),
+        MeshMaterial3d(materials.add(StandardMaterial {
+            base_color: Color::srgba(0.2, 0.2, 0.2, 0.05),
+            alpha_mode: AlphaMode::Blend,
+            ..default()
+        })),
     ));
+
+    point_material::spawn_points(commands, meshes, points_materials);
 }
 
 fn draw_axes(mut gizmos: Gizmos) {
